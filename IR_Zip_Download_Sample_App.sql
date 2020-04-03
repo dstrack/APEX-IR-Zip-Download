@@ -27,7 +27,7 @@ prompt APPLICATION 103 - IR-Zip-Download
 -- Application Export:
 --   Application:     103
 --   Name:            IR-Zip-Download
---   Date and Time:   01:22 Friday April 3, 2020
+--   Date and Time:   20:44 Friday April 3, 2020
 --   Exported By:     DIRK
 --   Flashback:       0
 --   Export Type:     Application Export
@@ -105,7 +105,7 @@ wwv_flow_api.create_flow(
 ,p_rejoin_existing_sessions=>'N'
 ,p_csv_encoding=>'Y'
 ,p_last_updated_by=>'DIRK'
-,p_last_upd_yyyymmddhh24miss=>'20200403012021'
+,p_last_upd_yyyymmddhh24miss=>'20200403204112'
 ,p_file_prefix => nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_ui_type_name => null
 );
@@ -7580,7 +7580,7 @@ wwv_flow_api.create_page(
 ,p_cache_mode=>'NOCACHE'
 ,p_help_text=>'No help is available for this page.'
 ,p_last_updated_by=>'DIRK'
-,p_last_upd_yyyymmddhh24miss=>'20200401005803'
+,p_last_upd_yyyymmddhh24miss=>'20200403204112'
 );
 wwv_flow_api.create_page_plug(
  p_id=>wwv_flow_api.id(41075231891517897)
@@ -7605,7 +7605,9 @@ wwv_flow_api.create_page_plug(
 ,p_plug_display_sequence=>10
 ,p_include_in_reg_disp_sel_yn=>'Y'
 ,p_plug_display_point=>'BODY'
-,p_plug_source=>'select * from sys.all_tab_columns'
+,p_plug_source=>wwv_flow_utilities.join(wwv_flow_t_varchar2(
+'select * from sys.user_tab_columns',
+''))
 ,p_plug_source_type=>'NATIVE_IR'
 ,p_plug_query_options=>'DERIVED_REPORT_COLUMNS'
 ,p_prn_content_disposition=>'ATTACHMENT'
@@ -7639,7 +7641,6 @@ wwv_flow_api.create_page_plug(
 );
 wwv_flow_api.create_worksheet(
  p_id=>wwv_flow_api.id(41075855333520402)
-,p_max_row_count=>'1000000'
 ,p_show_nulls_as=>'-'
 ,p_pagination_type=>'ROWS_X_TO_Y'
 ,p_pagination_display_pos=>'BOTTOM_RIGHT'
@@ -7649,14 +7650,6 @@ wwv_flow_api.create_worksheet(
 ,p_download_formats=>'CSV:HTML:EMAIL:XLS:PDF:RTF'
 ,p_owner=>'DIRK'
 ,p_internal_uid=>41075855333520402
-);
-wwv_flow_api.create_worksheet_column(
- p_id=>wwv_flow_api.id(41075976632520403)
-,p_db_column_name=>'OWNER'
-,p_display_order=>10
-,p_column_identifier=>'A'
-,p_column_label=>'Owner'
-,p_column_type=>'STRING'
 );
 wwv_flow_api.create_worksheet_column(
  p_id=>wwv_flow_api.id(41076025768520404)
@@ -7961,8 +7954,8 @@ wwv_flow_api.create_worksheet_rpt(
 ,p_status=>'PUBLIC'
 ,p_is_default=>'Y'
 ,p_display_rows=>50
-,p_report_columns=>'OWNER:TABLE_NAME:COLUMN_NAME:DATA_TYPE:DATA_TYPE_MOD:DATA_TYPE_OWNER:DATA_LENGTH:DATA_PRECISION:DATA_SCALE:NULLABLE:COLUMN_ID:DEFAULT_LENGTH:DATA_DEFAULT:NUM_DISTINCT:LOW_VALUE:HIGH_VALUE:DENSITY:NUM_NULLS:NUM_BUCKETS:LAST_ANALYZED:SAMPLE_SIZE:CHARAC'
-||'TER_SET_NAME:CHAR_COL_DECL_LENGTH:GLOBAL_STATS:USER_STATS:AVG_COL_LEN:CHAR_LENGTH:CHAR_USED:V80_FMT_IMAGE:DATA_UPGRADED:HISTOGRAM:DEFAULT_ON_NULL:IDENTITY_COLUMN:EVALUATION_EDITION:UNUSABLE_BEFORE:UNUSABLE_BEGINNING'
+,p_report_columns=>'TABLE_NAME:COLUMN_NAME:DATA_TYPE:DATA_TYPE_MOD:DATA_TYPE_OWNER:DATA_LENGTH:DATA_PRECISION:DATA_SCALE:NULLABLE:COLUMN_ID:DEFAULT_LENGTH:DATA_DEFAULT:NUM_DISTINCT:LOW_VALUE:HIGH_VALUE:DENSITY:NUM_NULLS:NUM_BUCKETS:LAST_ANALYZED:SAMPLE_SIZE:CHARACTER_SE'
+||'T_NAME:CHAR_COL_DECL_LENGTH:GLOBAL_STATS:USER_STATS:AVG_COL_LEN:CHAR_LENGTH:CHAR_USED:V80_FMT_IMAGE:DATA_UPGRADED:HISTOGRAM:DEFAULT_ON_NULL:IDENTITY_COLUMN:EVALUATION_EDITION:UNUSABLE_BEFORE:UNUSABLE_BEGINNING'
 ,p_flashback_enabled=>'N'
 );
 wwv_flow_api.create_page_button(
@@ -7974,21 +7967,20 @@ wwv_flow_api.create_page_button(
 ,p_button_template_options=>'#DEFAULT#'
 ,p_button_template_id=>wwv_flow_api.id(41068232117517620)
 ,p_button_is_hot=>'Y'
-,p_button_image_alt=>'Zip-download'
+,p_button_image_alt=>'Zip-Download'
 ,p_button_position=>'RIGHT_OF_IR_SEARCH_BAR'
 ,p_button_execute_validations=>'N'
 );
 wwv_flow_api.create_page_branch(
- p_id=>wwv_flow_api.id(41138482647324302)
-,p_branch_name=>'Branch To PL/SQL Procedure'
+ p_id=>wwv_flow_api.id(41242787272160401)
+,p_branch_name=>'IR_Zip_Download'
 ,p_branch_action=>'IR_Zip_Download.Download_Zip('||wwv_flow.LF||
 '    p_Region_Name => ''Sample Report'','||wwv_flow.LF||
 '    p_Application_ID => :APP_ID,'||wwv_flow.LF||
 '    p_App_Page_ID => :APP_PAGE_ID'||wwv_flow.LF||
 ');'
-,p_branch_point=>'AFTER_PROCESSING'
+,p_branch_point=>'BEFORE_COMPUTATION'
 ,p_branch_type=>'PLSQL'
-,p_branch_when_button_id=>wwv_flow_api.id(41100864510521201)
 ,p_branch_sequence=>10
 );
 end;
