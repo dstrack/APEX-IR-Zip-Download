@@ -7,7 +7,7 @@ Usage:
 1. Install the package IR_Zip_Download in your application schema.
 2. add a Button to your Report region.
 3. set 'Reload on Submit' to 'Allways' in an APEX 18 and higher.
-4. add a 'Branch to procedure' or 'Application Process' with the following code:
+4. add a 'Branch' of type 'PL/SQL Procedure' or 'Process' of type 'PL/SQL Code' with the following code:
 
 IR_Zip_Download.Download_Zip(
     p_Region_Name => 'Sample Report',  -- Enter your IR region title here
