@@ -1,15 +1,13 @@
 # APEX-IR-Zip-Download
 pl/sql code for downloading of large APEX Interactive Reports as ZIP files.
-In case you have to download very large reports from an APEX Instance that is running behind a web proxy server
-and in cases where you have to download reports with more rows than the techincal limit allows you to use,
-you can use the method to successfuly download these reports. The Sample App can be installed in an APEX 5 Workspace.
+In case you have to download very large reports from an APEX Instance that is running behind a web proxy server or in cases where you have to download reports with more rows than the technical limit allows you to use, you can use the method to successfully download these reports. The Sample App can be installed in an APEX 5 Workspace.
 
 
 Usage:
 1. Install the package IR_Zip_Download in your application schema.
 2. add a Button to your Report region.
 3. set 'Submit Page' to 'Allways' in an APEX 18 workspace.
-4. add a 'Branch to procedure' or 'Appliaction Process' with the following code:
+4. add a 'Branch to procedure' or 'Application Process' with the following code:
 
 IR_Zip_Download.Download_Zip(
     p_Region_Name => 'Sample Report',  -- Enter your IR region title here
