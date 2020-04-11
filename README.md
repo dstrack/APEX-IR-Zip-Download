@@ -10,7 +10,7 @@ Usage:
 4. add a 'Branch' of type 'PL/SQL Procedure' or 'Process' of type 'PL/SQL Code' with the following code:
 
 IR_Zip_Download.Download_Zip(
-    p_Region_Name => 'Sample Report',  -- Enter your IR region title here
+    p_Region_Name => 'Sample Report',  /* Enter your IR region title here */
     p_Application_ID => :APP_ID,
     p_App_Page_ID => :APP_PAGE_ID
 );
