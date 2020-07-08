@@ -27,7 +27,7 @@ prompt APPLICATION 103 - IR-Zip-Download
 -- Application Export:
 --   Application:     103
 --   Name:            IR-Zip-Download
---   Date and Time:   20:44 Friday April 3, 2020
+--   Date and Time:   22:25 Sunday April 26, 2020
 --   Exported By:     DIRK
 --   Flashback:       0
 --   Export Type:     Application Export
@@ -105,7 +105,7 @@ wwv_flow_api.create_flow(
 ,p_rejoin_existing_sessions=>'N'
 ,p_csv_encoding=>'Y'
 ,p_last_updated_by=>'DIRK'
-,p_last_upd_yyyymmddhh24miss=>'20200403204112'
+,p_last_upd_yyyymmddhh24miss=>'20200426114709'
 ,p_file_prefix => nvl(wwv_flow_application_install.get_static_app_file_prefix,'')
 ,p_ui_type_name => null
 );
@@ -7580,7 +7580,7 @@ wwv_flow_api.create_page(
 ,p_cache_mode=>'NOCACHE'
 ,p_help_text=>'No help is available for this page.'
 ,p_last_updated_by=>'DIRK'
-,p_last_upd_yyyymmddhh24miss=>'20200403204112'
+,p_last_upd_yyyymmddhh24miss=>'20200426024129'
 );
 wwv_flow_api.create_page_plug(
  p_id=>wwv_flow_api.id(41075231891517897)
@@ -8182,40 +8182,34 @@ wwv_flow_api.create_install_script(
 '	IS',
 '		l_colval        VARCHAR2 (2096);',
 '		l_buffer        VARCHAR2 (32767) DEFAULT '''';',
-'		l_status        INTEGER;',
 '		i_colcount      NUMBER DEFAULT 0;',
-'		l_separator     VARCHAR2 (10) DEFAULT '''';',
+'		l_separator     CONSTANT VARCHAR2 (10) DEFAULT '';'';',
 '		l_file          CLOB;',
 '		l_eol           VARCHAR(2) DEFAULT CHR (10);',
 '		l_colsdescr     dbms_sql.desc_tab;',
-'		l_lines_cnt     NUMBER DEFAULT 1;',
 '	BEGIN',
 '		dbms_sql.describe_columns(p_cursor_id, i_colcount, l_colsdescr);',
 '		FOR i IN 1 .. i_colcount',
 '		LOOP',
 '			dbms_sql.define_column (p_cursor_id, i, l_colval, 2000);',
-'			l_buffer := l_buffer || l_separator || l_colsdescr(i).col_name;',
-'			l_separator := '';'';',
+'			l_buffer := l_buffer || case when i > 1 then l_separator end || l_colsdescr(i).col_name;',
 '		END LOOP;',
 '		dbms_lob.createtemporary(l_file, true, dbms_lob.call);',
 '		l_buffer := l_buffer || l_eol;',
 '		dbms_lob.write( l_file, LENGTH(l_buffer), 1, l_buffer);',
 '		LOOP',
 '			EXIT WHEN dbms_sql.fetch_rows (p_cursor_id) <= 0;',
-'			l_separator := '''';',
 '			l_buffer := '''';',
 '			FOR i IN 1 .. i_colcount',
 '			LOOP',
 '				dbms_sql.column_value (p_cursor_id, i, l_colval);',
-'				IF (INSTR(l_colval, '';'') > 0 or INSTR(l_colval, l_eol) > 0)',
+'				IF (INSTR(l_colval, l_separator) > 0 or INSTR(l_colval, l_eol) > 0)',
 '				THEN',
 '					l_colval := ''"'' || REPLACE(l_colval, ''"'', ''""'') || ''"'';',
 '				END IF;',
-'				l_buffer := l_buffer || l_separator || l_colval;',
-'				l_separator := '';'';',
+'				l_buffer := l_buffer || case when i > 1 then l_separator end || l_colval;',
 '			END LOOP;',
 '			l_buffer := l_buffer || l_eol;',
-'			l_lines_cnt := l_lines_cnt + 1;',
 '			dbms_lob.writeappend( l_file, LENGTH(l_buffer), l_buffer);',
 '		END LOOP;',
 '		RETURN l_file;',
@@ -8351,8 +8345,7 @@ wwv_flow_api.create_install_script(
 '			htp.init();',
 '			owa_util.mime_header(''application/zip'', false);',
 '			htp.p(''Content-length: '' || v_File_Size);',
-'    		htp.p(''Content-Disposition: attachment; filename="'' || v_File_Name || ''"'' );',
-'			-- htp.prn(''Content-length: '' || v_File_Size);',
+'    		htp.p(''Content-Disposition: attachment; filename='' || dbms_assert.enquote_name(v_File_Name, false) );',
 '			-- htp.prn(''Content-Disposition:  attachment; filename="'');  htp.prints(v_File_Name); htp.prn(''"'');',
 '			owa_util.http_header_close;',
 '			-- Set Apex page property ''Reload on Submit'' to ''always'' to enable this download',
