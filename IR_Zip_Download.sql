@@ -33,6 +33,11 @@ IS
 		p_Application_ID IN NUMBER DEFAULT NV('APP_ID'),
 		p_App_Page_ID 	IN NUMBER DEFAULT NV('APP_PAGE_ID')
 	);
+
+	FUNCTION Process_Download_Zip (
+		p_process in apex_plugin.t_process,
+		p_plugin  in apex_plugin.t_plugin )
+	RETURN apex_plugin.t_process_exec_result;
 END;
 ]';
 	EXECUTE IMMEDIATE v_Stat;
@@ -49,18 +54,23 @@ as
 	c_msg_bad_setting 		CONSTANT VARCHAR2(500) := q'[Set Apex page property 'Reload on Submit' to 'always' to enable this download]';
 
 	FUNCTION cursor_to_csv (
-		p_cursor_id     INTEGER
+		p_cursor_id     INTEGER,
+		p_Separator IN VARCHAR2 DEFAULT ';',
+		p_Enclosed_By IN VARCHAR2 DEFAULT '"'
 	)
 	RETURN CLOB
 	IS
 		l_colval        VARCHAR2 (2096);
 		l_buffer        VARCHAR2 (32767) DEFAULT '';
 		i_colcount      NUMBER DEFAULT 0;
-		l_separator     CONSTANT VARCHAR2 (10) DEFAULT ';';
+		l_separator     VARCHAR2 (10);
+		l_enclosed_by   VARCHAR2 (10);
 		l_file          CLOB;
 		l_eol           VARCHAR(2) DEFAULT CHR (10);
 		l_colsdescr     dbms_sql.desc_tab;
 	BEGIN
+		l_separator := NVL(p_Separator, ';');
+		l_enclosed_by := NVL(p_Enclosed_By, '"');
 		dbms_sql.describe_columns(p_cursor_id, i_colcount, l_colsdescr);
 		FOR i IN 1 .. i_colcount
 		LOOP
@@ -78,7 +88,7 @@ as
 				dbms_sql.column_value (p_cursor_id, i, l_colval);
 				IF (INSTR(l_colval, l_separator) > 0 or INSTR(l_colval, l_eol) > 0)
 				THEN
-					l_colval := '"' || REPLACE(l_colval, '"', '""') || '"';
+					l_colval := l_enclosed_by || REPLACE(l_colval, l_enclosed_by, l_enclosed_by||l_enclosed_by) || l_enclosed_by;
 				END IF;
 				l_buffer := l_buffer || case when i > 1 then l_separator end || l_colval;
 			END LOOP;
@@ -89,7 +99,9 @@ as
 	END cursor_to_csv;
 
 	FUNCTION Report_to_CSV (
-		p_report IN  apex_ir.t_report
+		p_report IN  apex_ir.t_report,
+		p_Separator IN VARCHAR2 DEFAULT ';',
+		p_Enclosed_By IN VARCHAR2 DEFAULT '"'
 	)
 	RETURN CLOB
 	IS
@@ -105,7 +117,7 @@ as
 				dbms_sql.bind_variable(v_curid, p_report.binds(i).name, p_report.binds(i).value);
 			end loop;
 			v_ret := DBMS_SQL.EXECUTE(v_curid);
-			v_file := cursor_to_csv (v_curid);
+			v_file := cursor_to_csv (v_curid, p_Separator, p_Enclosed_By);
 			dbms_sql.close_cursor (v_curid);
 		end if;
 		return v_file;
@@ -159,10 +171,12 @@ as
 		v_zip_file 		BLOB;
 		v_File_Name		varchar2(1024);
 		v_File_Size  	pls_integer;
+		v_Separator 	VARCHAR2(16);
+		v_Enclosed_By	VARCHAR2(16);
 	BEGIN
 		begin 
-			select REGION_ID
-			into v_region_id
+			select REGION_ID, FILENAME, SEPARATOR, ENCLOSED_BY
+			into v_region_id, v_File_Name, v_Separator, v_Enclosed_By
 			from APEX_APPLICATION_PAGE_IR
 			where APPLICATION_ID = p_Application_ID
 			and PAGE_ID = p_App_Page_ID
@@ -192,8 +206,10 @@ $END
 				p_max_length => 3500
 			);
 		end if;
-		v_File_Name := p_Region_Name || '.csv';
-		v_csv := IR_Zip_Download.Report_to_CSV(v_report);
+		v_File_Name := NVL(apex_plugin_util.replace_substitutions (v_File_Name), p_Region_Name || '.csv');
+		v_Separator := apex_plugin_util.replace_substitutions (v_Separator);
+		v_Enclosed_By := apex_plugin_util.replace_substitutions (v_Enclosed_By);
+		v_csv := IR_Zip_Download.Report_to_CSV(v_report, v_Separator, v_Enclosed_By);
 		if dbms_lob.getlength(v_csv) > 0 then
 			v_file_content := IR_Zip_Download.Clob_To_Blob (
 				p_src_clob	=> v_csv
@@ -219,15 +235,31 @@ $END
 			owa_util.mime_header('application/zip', false);
 			htp.p('Content-length: ' || v_File_Size);
     		htp.p('Content-Disposition: attachment; filename=' || dbms_assert.enquote_name(v_File_Name, false) );
-			-- htp.prn('Content-Disposition:  attachment; filename="');  htp.prints(v_File_Name); htp.prn('"');
 			owa_util.http_header_close;
-			-- Set Apex page property 'Reload on Submit' to 'always' to enable this download
 			wpg_docload.download_file( v_zip_file );
 			apex_application.stop_apex_engine;
 		else 
 			raise_application_error (c_App_Error_Code, c_msg_no_data_found);
 		end if;
 	END Download_Zip;
+
+	FUNCTION Process_Download_Zip (
+		p_process in apex_plugin.t_process,
+		p_plugin  in apex_plugin.t_plugin )
+	RETURN apex_plugin.t_process_exec_result
+	IS
+		v_exec_result apex_plugin.t_process_exec_result;
+		v_Region_Name VARCHAR2(32767) := p_process.attribute_01;
+    BEGIN
+        if apex_application.g_debug then
+            apex_debug.info('IR Region Name : %s', v_Region_Name);
+        end if;
+		IR_Zip_Download.Download_Zip(
+			p_Region_Name => v_Region_Name
+		);
+		RETURN v_exec_result;
+	END Process_Download_Zip;
+
 end IR_Zip_Download;
 /
 show errors
