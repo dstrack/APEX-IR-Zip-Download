@@ -1,6 +1,6 @@
 # APEX-IR-Zip-Download
 pl/sql code for downloading of large APEX Interactive Reports as ZIP files.
-In case you have to download very large reports from an APEX Instance that is running behind a web proxy server or in cases where you have to download reports with more rows than the technical limit allows you to use, you can use the method to successfully download these reports. The Sample App can be installed in an APEX 5 Workspace.
+In case you have to download very large reports from an APEX Instance that is running behind a web proxy server or in cases where you have to download reports with more rows than the technical limit allows you to use, you can use the method to successfully download these reports. The Sample App can be installed in an APEX 5 (or higher) Workspace.
 
 
 Usage:
@@ -16,9 +16,9 @@ IR_Zip_Download.Download_Zip(
 );
 
 The procedure performs the following steps:
-1. extract the query with APEX_IR.GET_REPORT
-2. bind the variables
-3. Open cursor for query
-4. convert to csv.
-5. Convert to zip with APEX_ZIP.ADD_FIle
-6. start the download to the browser
+1. Extract the query with APEX_IR.GET_REPORT
+2. Bind the variables for filter conditions
+3. Open cursor for query and load the rows
+4. Convert to CSV. The parameters 'CSV Separator', 'CSV Enclosed By', and 'Filename' defined under Attributes / Download of the report region are recognized. The Enclosing character is only used, when a data value contains the 'CSV Separator', or newline character.
+6. Convert to ZIP with APEX_ZIP.ADD_FILE. Up to 2GB of compressed data can be processed.
+7. Start the download to the browser
